@@ -19,8 +19,6 @@ def render_response_error(errors={}):
 
 
 def render_to_response(body={}):
-
-    response = {}
     response = BaseBodySchema().dump({
         "results": [body]
     }).data
