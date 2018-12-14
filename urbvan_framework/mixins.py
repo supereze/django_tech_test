@@ -1,14 +1,12 @@
 # coding: utf8
 from rest_framework import (mixins, status)
 from rest_framework.response import Response
-
 from .utils import (render_to_response, render_response_error)
 
 
 class CreateModelMixin(mixins.CreateModelMixin):
 
     def create(self, request, *args, **kwargs):
-
         serializer = self.get_serializer(data=request.data)
 
         if not serializer.is_valid():
@@ -37,7 +35,6 @@ class CreateModelMixin(mixins.CreateModelMixin):
 
 
 class ListModelMixin(object):
-
     def list(self, request, *args, **kwargs):
 
         queryset = self.get_queryset()
@@ -51,15 +48,18 @@ class ListModelMixin(object):
         return self.get_paginated_response(schema)
 
 
-class DestroyModelMixin(mixins.DestroyModelMixin):
-    """
-    Destroy model instances.
-    """
+class RetrieveModelMixin(mixins.RetrieveModelMixin):
+    def retrieve(self, request, *args, **kwargs):
 
-    def destroy(self, request, pk, *args, **kwargs):
-        snippet = self.get_object(pk)
-        snippet.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = self.get_serializer(data=request.data)
+        instance = serializer.instance
+
+        schema = self.schema_class()
+        schema = schema.dump(instance).data
+
+        response = render_to_response(body=schema)
+
+        return Response(response, status=status.HTTP_201_CREATED)
 
 
 class UpdateModelMixin(mixins.UpdateModelMixin):
@@ -89,3 +89,13 @@ class UpdateModelMixin(mixins.UpdateModelMixin):
         response = render_to_response(body=schema)
 
         return Response(response, status=status.HTTP_201_CREATED)
+
+
+class DestroyModelMixin(mixins.DestroyModelMixin):
+    def destroy(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        instance = serializer.instance
+        instance.delete()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
